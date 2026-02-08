@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLUEPAY OFFICIAL</title>
+
+<style>
+:root {
+    --bg-color: #0d1425;
+    --card-bg: #16203a;
+    --accent-blue: #007bff;
+    --text-main: #ffffff;
+    --text-dim: #8e99b0;
+}
+
+* { box-sizing: border-box; transition: 0.3s; }
+body { 
+    margin: 0; 
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif; 
+    background-color: var(--bg-color); 
+    color: var(--text-main);
+}
+
+/* Splash Screen */
+#splash-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+    background: var(--bg-color);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 9999;
+}
+.loader {
+    width: 50px; height: 50px;
+    border: 5px solid #1c2744;
+    border-top: 5px solid var(--accent-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.app { max-width: 450px; margin: auto; padding: 15px; }
+.card { background: var(--card-bg); border-radius: 20px; padding: 20px; margin-bottom: 20px; }
+
+.balance-amt { font-size: 32px; font-weight: bold; margin: 5px 0 20px 0; }
+.btn-blue {
+    background: var(--accent-blue); color: white; border: none; width: 100%;
+    padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer;
+}
+
+.services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.service-item {
+    background: #1c2744; padding: 15px 5px; border-radius: 15px;
+    text-align: center; cursor: pointer; text-decoration: none; color: white;
+}
+.service-item span { font-size: 11px; color: var(--text-dim); display: block; margin-top: 5px; }
+
+input {
+    width: 100%; padding: 14px; margin: 8px 0;
+    background: #090e1a; border: 1px solid #2d3a5a;
+    border-radius: 10px; color: white;
+}
+
+.hidden { display: none; }
+.modal {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9); display: none; justify-content: center; align-items: center; z-index: 1000;
+}
+.modal-box { background: var(--card-bg); width: 90%; max-width: 380px; padding: 25px; border-radius: 20px; }
+
+.history-item {
+    background: #090e1a; padding: 12px; border-radius: 10px; margin-bottom: 10px; font-size: 13px;
+    border-left: 3px solid var(--accent-blue);
+}
+</style>
+</head>
+<body>
+
+<div id="splash-screen">
+    <div class="loader"></div>
+    <h2 style="color:var(--accent-blue); letter-spacing: 2px;">BLUEPAY</h2>
+</div>
+
+<div class="app hidden" id="auth-screen">
+    <div style="text-align:center; padding: 20px 0;"><h1 style="color:var(--accent-blue)">BLUEPAY</h1></div>
+    <div id="reg-box" class="card">
+        <h3>Create Account</h3>
+        <input id="r_name" placeholder="Full Name">
+        <input id="r_phone" type="tel" placeholder="Phone Number">
+        <input id="r_pass" type="password" placeholder="Password">
+        <input id="r_pin" type="password" placeholder="Transaction PIN">
+        <button class="btn-blue" onclick="register()">Register</button>
+        <p style="text-align:center; font-size:13px" onclick="showLogin()">Have an account? <span style="color:var(--accent-blue)">Login</span></p>
+    </div>
+    <div id="login-box" class="card hidden">
+        <h3>Login</h3>
+        <input id="l_phone" type="tel" placeholder="Phone Number">
+        <input id="l_pass" type="password" placeholder="Password">
+        <button class="btn-blue" onclick="login()">Login</button>
+        <p style="text-align:center; font-size:13px" onclick="showReg()">New here? <span style="color:var(--accent-blue)">Register</span></p>
+    </div>
+</div>
+
+<div class="app hidden" id="dash-screen">
+    <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+        <div><p style="color:var(--text-dim); margin:0;">Hi, <span id="userName">User</span></p><h3>Welcome!</h3></div>
+        <div style="background:var(--accent-blue); width:40px; height:40px; border-radius:50%; display:flex; align-items:center; justify-content:center;">🙋</div>
+    </div>
+
+    <div class="card">
+        <p style="color:var(--text-dim); font-size:14px">Available Balance</p>
+        <h1 class="balance-amt">₦<span id="bal">0</span></h1>
+        <button class="btn-blue" onclick="openAction('Withdraw')">Withdraw Money</button>
+    </div>
+
+    <div class="services-grid">
+        <div class="service-item" onclick="openBuyCode()">🔓<span>Buy BTC</span></div>
+        <div class="service-item" onclick="openAction('Watch')">📺<span>Watch</span></div>
+        <div class="service-item" onclick="openAction('Airtime')">📞<span>Airtime</span></div>
+        <div class="service-item" onclick="openAction('Data')">📊<span>Data</span></div>
+    </div>
+
+    <h3 style="margin-top:25px">Transaction History</h3>
+    <div id="history-list"></div>
+
+    <h3 style="margin-top:25px">Support</h3>
+    <div class="services-grid">
+        <a href="https://chat.whatsapp.com/Jt7Xjnnb8i83JOwON1Ne2j" class="service-item">💬<span>WhatsApp</span></a>
+        <a href="https://t.me/OFFIXIAL_BAMIDELE" class="service-item">✈️<span>Telegram</span></a>
+        <a href="mailto:FADEYIBIBITOBI6@Gmail.com" class="service-item">✉️<span>Email</span></a>
+        <div class="service-item" onclick="logout()">🚪<span>Logout</span></div>
+    </div>
+</div>
+
+<div class="modal" id="actionModal">
+    <div class="modal-box">
+        <h3 id="actionTitle">Withdraw</h3>
+        <div id="bank-fields">
+            <input id="m_bank" placeholder="Bank Name (e.g. Opay, Kuda)">
+            <input id="m_acc" type="number" placeholder="Account Number">
+        </div>
+        <input id="m_amt" type="number" placeholder="Enter Amount">
+        <input id="m_pin" type="password" placeholder="Transaction PIN">
+        <input id="m_code" type="password" placeholder="BPC Code">
+        <button class="btn-blue" onclick="processTx()">Confirm Transaction</button>
+        <p style="text-align:center; color:#ff6b6b; cursor:pointer" onclick="closeModals()">Cancel</p>
+    </div>
+</div>
+
+<div class="modal" id="buyModal">
+    <div class="modal-box">
+        <h3>Get BTC Code</h3>
+        <p>Pay ₦8,900 to:</p>
+        <div style="background:#090e1a; padding:10px; border-radius:10px; font-size:13px; margin-bottom:10px;">
+            <p>Bank: MONIEPOINT MFB</p>
+            <p>name: FADEYIBI OLUWATOBI SUNDAY
+            <p>Acc: 5164355895</p>
+        </div>
+        <input type="file" id="proof_img">
+        <button class="btn-blue" style="background:#28a745" onclick="alert('Sent! Verification in progress.')">Submit Proof</button>
+        <p style="text-align:center; color:#ff6b6b; cursor:pointer" onclick="closeModals()">Close</p>
+    </div>
+</div>
+
+<script>
+let users = JSON.parse(localStorage.getItem('bp_users') || '[]');
+let currentUser = null;
+
+window.onload = () => {
+    setTimeout(() => {
+        document.getElementById('splash-screen').style.display = 'none';
+        const loggedPhone = localStorage.getItem('bp_logged_in');
+        if(loggedPhone) {
+            currentUser = users.find(u => u.phone === loggedPhone);
+            if(currentUser) launchDash();
+            else document.getElementById('auth-screen').classList.remove('hidden');
+        } else {
+            document.getElementById('auth-screen').classList.remove('hidden');
+        }
+    }, 3000);
+};
+
+function showLogin() { document.getElementById('reg-box').classList.add('hidden'); document.getElementById('login-box').classList.remove('hidden'); }
+function showReg() { document.getElementById('login-box').classList.add('hidden'); document.getElementById('reg-box').classList.remove('hidden'); }
+
+function register() {
+    const name = r_name.value, phone = r_phone.value.trim(), pass = r_pass.value, pin = r_pin.value;
+    if(!name || !phone || !pass || !pin) return alert("Please fill all fields");
+    users.push({ name, phone, pass, pin, balance: 200000, history: [] });
+    localStorage.setItem('bp_users', JSON.stringify(users));
+    alert("Registration Successful!"); showLogin();
+}
+
+function login() {
+    const user = users.find(u => u.phone === l_phone.value && u.pass === l_pass.value);
+    if(user) { currentUser = user; localStorage.setItem('bp_logged_in', user.phone); launchDash(); }
+    else alert("Error: Wrong Phone or Password");
+}
+
+function launchDash() {
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('dash-screen').classList.remove('hidden');
+    document.getElementById('userName').innerText = currentUser.name;
+    document.getElementById('bal').innerText = currentUser.balance.toLocaleString();
+    renderHistory();
+}
+
+function renderHistory() {
+    const div = document.getElementById('history-list');
+    if(!currentUser.history || currentUser.history.length === 0) {
+        div.innerHTML = '<p style="text-align:center; color:var(--text-dim)">No history yet</p>';
+        return;
+    }
+    div.innerHTML = currentUser.history.map(h => `
+        <div class="history-item">
+            <strong>${h.type}</strong> - ₦${h.amt}<br>
+            <small>${h.details || ''}</small><br>
+            <small style="color:var(--text-dim)">${h.date}</small>
+        </div>
+    `).join('');
+}
+
+function openAction(type) {
+    document.getElementById('actionTitle').innerText = type;
+    document.getElementById('bank-fields').style.display = (type === 'Withdraw') ? 'block' : 'none';
+    document.getElementById('actionModal').style.display = 'flex';
+}
+
+function openBuyCode() { document.getElementById('buyModal').style.display = 'flex'; }
+function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
+
+function processTx() {
+    const amt = Number(m_amt.value);
+    const pin = m_pin.value;
+    const code = m_code.value;
+    const bank = m_bank.value;
+    const acc = m_acc.value;
+    const type = document.getElementById('actionTitle').innerText;
+
+    if(pin !== currentUser.pin) return alert("Error: Incorrect PIN");
+    if(code !== "865191") return alert("Error: Invalid BTC Code");
+    if(amt > currentUser.balance || amt <= 0) return alert("Error: Invalid Amount or Insufficient Balance");
+    if(type === 'Withdraw' && (!bank || !acc)) return alert("Error: Please provide Bank details");
+
+    // Success logic
+    currentUser.balance -= amt;
+    const detailStr = (type === 'Withdraw') ? `To: ${bank} (${acc})` : `Service: ${type}`;
+    
+    currentUser.history.unshift({
+        type: type,
+        amt: amt.toLocaleString(),
+        details: detailStr,
+        date: new Date().toLocaleString()
+    });
+
+    const idx = users.findIndex(u => u.phone === currentUser.phone);
+    users[idx] = currentUser;
+    localStorage.setItem('bp_users', JSON.stringify(users));
+
+    alert("Transaction Successful!");
+    location.reload();
+}
+
+function logout() { localStorage.removeItem('bp_logged_in'); location.reload(); }
+</script>
+</body>
+</html>
